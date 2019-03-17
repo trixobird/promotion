@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"promotion/clients/smsclient"
 	u "promotion/utils"
 	"time"
 )
@@ -16,7 +17,6 @@ type Promotion struct {
 
 /*
  This struct function validate the required parameters sent through the http request body
-
 returns message and true if the requirement is met
 */
 func (promotion *Promotion) Validate() (map[string]interface{}, bool) {
@@ -52,23 +52,31 @@ func RedeemPromoCode(promotion *Promotion) map[string]interface{} {
 	err := GetDB().Table("phones").Where("phone = ?", promotion.Phone).First(phone).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return u.Message(false, "Account not found! You can register for a free account on CompanyXYZ.com/register. Sincerely CompanyXYZ!")
+			notFound := "Account not found! You can register for a free account on CompanyXYZ.com/register. Sincerely CompanyXYZ!"
+			smsclient.SendSms(phone.Phone, notFound)
+			return u.Message(false, notFound)
 		}
 		return u.Message(false, "Connection error. Please retry")
 	}
 
 	if phone.Redeemed {
-		return u.Message(false, "You have already redeemed promo code:"+phone.PromoCode+
-			" on product:"+fmt.Sprint(phone.RedeemProductId)+" at "+phone.RedeemDate.Format("Mon, 02 Jan 2006 15:04:05")+
-			". Sincerely CompanyXYZ!")
+		alreadyReceived := "You have already redeemed promo code:" + phone.PromoCode +
+			" on product:" + fmt.Sprint(phone.RedeemProductId) + " at " + phone.RedeemDate.Format("Mon, 02 Jan 2006 15:04:05") +
+			". Sincerely CompanyXYZ!"
+		smsclient.SendSms(phone.Phone, alreadyReceived)
+		return u.Message(false, alreadyReceived)
 	}
 
 	if phone.PromoCode == "" {
-		return u.Message(false, "The phone does have a promocode registered. Get yours on CompanyXYZ.com/sms-promotion")
+		noCode := "The phone does have a promocode registered. Get yours on CompanyXYZ.com/sms-promotion"
+		smsclient.SendSms(phone.Phone, noCode)
+		return u.Message(false, noCode)
 	}
 
 	if phone.PromoCode != promotion.PromoCode {
-		return u.Message(false, "The promocode is not correct. Please try again")
+		erroneousCode := "The promocode is not correct. Please try again"
+		smsclient.SendSms(phone.Phone, erroneousCode)
+		return u.Message(false, erroneousCode)
 	}
 
 	// Update db
@@ -77,7 +85,11 @@ func RedeemPromoCode(promotion *Promotion) map[string]interface{} {
 	phone.Redeemed = true
 	GetDB().Save(&phone)
 
-	return u.Message(true, "Congratulations! You have redeemed promo code:"+phone.PromoCode+
-		" on product:"+fmt.Sprint(phone.RedeemProductId)+" at "+phone.RedeemDate.Format("Mon, 02 Jan 2006 15:04:05")+
-		". Sincerely CompanyXYZ!")
+	congratulations := "Congratulations! You have redeemed promo code:" + phone.PromoCode +
+		" on product:" + fmt.Sprint(phone.RedeemProductId) + " at " + phone.RedeemDate.Format("Mon, 02 Jan 2006 15:04:05") +
+		". Sincerely CompanyXYZ!"
+	if resp, ok := smsclient.SendSms(phone.Phone, congratulations); !ok {
+		return resp
+	}
+	return u.Message(true, congratulations)
 }

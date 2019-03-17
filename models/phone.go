@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	"promotion/clients/smsclient"
 	u "promotion/utils"
 	"strings"
 	"time"
@@ -17,7 +18,6 @@ type Phone struct {
 	RedeemProductId uint `json:"redeem_product_id"`
 }
 
-//Validate incoming user details...
 func (phone *Phone) Validate() (map[string]interface{}, bool) {
 
 	if !(strings.HasPrefix(phone.Phone, "+") || strings.HasPrefix(phone.Phone, "00")) {
@@ -86,5 +86,9 @@ func SendSms(phone *Phone) map[string]interface{} {
 	}
 
 	GetDB().Save(&phone)
-	return u.Message(false, greeting)
+
+	if resp, ok := smsclient.SendSms(phone.Phone, greeting); !ok {
+		return resp
+	}
+	return u.Message(true, greeting)
 }
