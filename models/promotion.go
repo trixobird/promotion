@@ -57,18 +57,18 @@ func RedeemPromoCode(promotion *Promotion) map[string]interface{} {
 		return u.Message(false, "Connection error. Please retry")
 	}
 
+	if phone.Redeemed {
+		return u.Message(false, "You have already redeemed promo code:"+phone.PromoCode+
+			" on product:"+fmt.Sprint(phone.RedeemProductId)+" at "+phone.RedeemDate.Format("Mon, 02 Jan 2006 15:04:05")+
+			". Sincerely CompanyXYZ!")
+	}
+
 	if phone.PromoCode == "" {
 		return u.Message(false, "The phone does have a promocode registered. Get yours on CompanyXYZ.com/sms-promotion")
 	}
 
 	if phone.PromoCode != promotion.PromoCode {
 		return u.Message(false, "The promocode is not correct. Please try again")
-	}
-
-	if phone.Redeemed {
-		return u.Message(false, "You have already redeemed promo code:"+phone.PromoCode+
-			" on product:"+fmt.Sprint(phone.RedeemProductId)+" at "+phone.RedeemDate.Format("Mon, 02 Jan 2006 15:04:05")+
-			". Sincerely CompanyXYZ!")
 	}
 
 	// Update db

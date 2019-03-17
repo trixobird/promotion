@@ -32,7 +32,16 @@ func init() {
 	}
 
 	db = conn
-	db.Debug().AutoMigrate(&Phone{}, &Promotion{})
+
+	// Seed
+	if !db.HasTable(&TwoDigitCode{}) {
+		defer SeedTwoDigits()
+	}
+	if !db.HasTable(&ThreeDigitCode{}) {
+		defer SeedThreeDigits()
+	}
+
+	db.Debug().AutoMigrate(&Phone{}, &Promotion{}, &TwoDigitCode{}, &ThreeDigitCode{})
 }
 
 func GetDB() *gorm.DB {

@@ -28,7 +28,11 @@ func (phone *Phone) Validate() (map[string]interface{}, bool) {
 		phone.Phone = strings.Replace(phone.Phone, "00", "+", 1)
 	}
 
-	return u.Message(false, "Requirement passed"), true
+	if !IsEuropean(phone.Phone[1:4]) {
+		return u.Message(false, "Phone number is not European"), false
+	}
+
+	return u.Message(true, "Requirement passed"), true
 }
 
 func (phone *Phone) Create() map[string]interface{} {
