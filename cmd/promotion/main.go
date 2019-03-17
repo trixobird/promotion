@@ -14,6 +14,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/register", restapi.RegisterPhone).Methods("POST")
+	router.HandleFunc("/api/confirm", restapi.ConfirmPhone).Methods("POST")
 	router.HandleFunc("/api/sms-promotion", restapi.SendPromoCode).Methods("POST")
 	router.HandleFunc("/api/redeem-promotion", restapi.RedeemPromotion).Methods("POST")
 

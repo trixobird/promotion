@@ -59,6 +59,12 @@ func RedeemPromoCode(promotion *Promotion) map[string]interface{} {
 		return u.Message(false, "Connection error. Please retry")
 	}
 
+	if !phone.Confirmed {
+		notConfirmed := "Phone is not yet confirmed"
+		smsclient.SendSms(phone.Phone, notConfirmed)
+		return u.Message(false, notConfirmed)
+	}
+
 	if phone.Redeemed {
 		alreadyReceived := "You have already redeemed promo code:" + phone.PromoCode +
 			" on product:" + fmt.Sprint(phone.RedeemProductId) + " at " + phone.RedeemDate.Format("Mon, 02 Jan 2006 15:04:05") +
