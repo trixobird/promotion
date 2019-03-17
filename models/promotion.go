@@ -74,7 +74,7 @@ func RedeemPromoCode(promotion *Promotion) map[string]interface{} {
 	}
 
 	if phone.PromoCode == "" {
-		noCode := "The phone does have a promocode registered. Get yours on CompanyXYZ.com/sms-promotion"
+		noCode := "The phone does not have a promocode registered. Get yours on CompanyXYZ.com/sms-promotion"
 		smsclient.SendSms(phone.Phone, noCode)
 		return u.Message(false, noCode)
 	}

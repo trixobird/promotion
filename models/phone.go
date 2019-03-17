@@ -79,7 +79,7 @@ func ConfirmPhone(phone *Phone) map[string]interface{} {
 	if resp, ok := phone.Validate(); !ok {
 		return resp
 	}
-	
+
 	dbPhone := &Phone{}
 	err := GetDB().Table("phones").Where("phone = ?", phone.Phone).First(dbPhone).Error
 	if err != nil {
